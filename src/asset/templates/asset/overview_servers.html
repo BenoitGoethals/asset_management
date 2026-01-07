@@ -1,10 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Servers</title>
-</head>
-<body>
-Overview of servers
-</body>
-</html>
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'asset/css/style.css' %}">
+<script src="{% static 'asset/js/overview_servers.js' %}"></script>
+
+<h1>Servers</h1>
+
+{% if servers %}
+    <table id="serverTable">
+        <thead>
+        <tr>
+            <th onclick="sortTable(0)">ID</th>
+            <th onclick="sortTable(1)">Name</th>
+            <th onclick="sortTable(2)">Hostname</th>
+            <th onclick="sortTable(3)">IP Address</th>
+            <th onclick="sortTable(4)">Status</th>
+            <th onclick="sortTable(5)">OS</th>
+            <th onclick="sortTable(6)">CPU %</th>
+            <th onclick="sortTable(7)">RAM (GB)</th>
+            <th onclick="sortTable(8)">Disk %</th>
+            <th onclick="sortTable(9)">Location</th>
+            <th onclick="sortTable(10)">Created</th>
+            <th onclick="sortTable(11)">Updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for server in servers %}
+            <tr>
+                <td>{{ server.id|truncatechars:8 }}</td>
+                <td>{{ server.name|default:"-" }}</td>
+                <td>{{ server.hostname|default:"-" }}</td>
+                <td>{{ server.primary_ip_address|default:"-" }}</td>
+                <td>{{ server.status|default:"-" }}</td>
+                <td>{{ server.operating_system|default:"-" }}</td>
+                <td>{{ server.cpu_utilization|default:"0" }}%</td>
+                <td>{{ server.ram_gb|default:"0" }}</td>
+                <td>{{ server.disk_utilization|default:"0" }}%</td>
+                <td>{{ server.physical_location|default:"-" }}</td>
+                <td>{{ server.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ server.updated_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No servers available.</p>
+{% endif %}
+
