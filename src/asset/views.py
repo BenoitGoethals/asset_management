@@ -8,8 +8,11 @@ from asset.models import Server
 
 
 def index(request):
+    if not request.user.is_authenticated:
+        return render(request, "asset/login.html")
     return render(request, "asset/index.html")
 
+@login_required
 def overview_servers(request):
     servers = Server.objects.all()
     return render(request, "asset/overview_servers.html", {"servers": servers})
@@ -40,7 +43,7 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully.")
     return redirect('login')
 
-
+@login_required
 # CRUD Views for Server
 def server_list(request):
     servers = Server.objects.all().order_by('-created_at')
