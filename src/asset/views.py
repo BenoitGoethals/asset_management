@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
 
 from asset.models import Server
 
@@ -11,6 +13,32 @@ def index(request):
 def overview_servers(request):
     servers = Server.objects.all()
     return render(request, "asset/overview_servers.html", {"servers": servers})
+
+
+# Authentication Views
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('server_list')
+
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            auth_login(request, user)
+            next_url = request.GET.get('next', 'server_list')
+            return redirect(next_url)
+        else:
+            messages.error(request, "Invalid username or password.")
+
+    return render(request, "asset/login.html")
+
+
+def logout_view(request):
+    auth_logout(request)
+    messages.success(request, "You have been logged out successfully.")
+    return redirect('login')
 
 
 # CRUD Views for Server
@@ -24,6 +52,7 @@ def server_detail(request, pk):
     return render(request, "asset/server_detail.html", {"server": server})
 
 
+@login_required
 def server_create(request):
     if request.method == "POST":
         # Basic required fields
@@ -56,6 +85,7 @@ def server_create(request):
     return render(request, "asset/server_form.html", {"server": None})
 
 
+@login_required
 def server_update(request, pk):
     server = get_object_or_404(Server, pk=pk)
 
@@ -82,6 +112,7 @@ def server_update(request, pk):
     return render(request, "asset/server_form.html", {"server": server})
 
 
+@login_required
 def server_delete(request, pk):
     server = get_object_or_404(Server, pk=pk)
 
