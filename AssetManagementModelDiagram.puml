@@ -1,0 +1,337 @@
+@startuml Asset Management Models
+
+' Abstract Base Class
+abstract class BaseAsset {
+  + id: UUID {PK}
+  + asset_tag: CharField {unique}
+  + serial_number: CharField
+  --
+  + name: CharField
+  + description: TextField
+  + manufacturer: CharField
+  + model: CharField
+  + model_number: CharField
+  --
+  + hostname: CharField
+  + fqdn: CharField
+  + primary_ip_address: GenericIPAddressField
+  + secondary_ip_address: GenericIPAddressField
+  + mac_address: CharField
+  + subnet_mask: GenericIPAddressField
+  + default_gateway: GenericIPAddressField
+  + dns_servers: TextField
+  + vlan_id: IntegerField
+  --
+  + physical_location: CharField
+  + building: CharField
+  + floor: CharField
+  + room: CharField
+  + rack_location: CharField
+  + rack_unit: CharField
+  + geographic_location: CharField
+  + site: CharField
+  --
+  + department: CharField
+  + cost_center: CharField
+  + business_unit: CharField
+  --
+  + purchase_date: DateField
+  + purchase_price: DecimalField
+  + warranty_expiration: DateField
+  + support_expiration: DateField
+  + lease_expiration: DateField
+  + end_of_life_date: DateField
+  + disposal_date: DateField
+  + vendor: CharField
+  + purchase_order: CharField
+  --
+  + status: CharField
+  + environment: CharField
+  + risk_level: CharField
+  + compliance_status: BooleanField
+  + authorized: BooleanField
+  + managed: BooleanField
+  --
+  + first_discovered: DateTimeField
+  + last_seen: DateTimeField
+  + last_scanned: DateTimeField
+  + discovery_method: CharField
+  + monitoring_enabled: BooleanField
+  --
+  + encrypted: BooleanField
+  + encryption_method: CharField
+  + antivirus_installed: BooleanField
+  + antivirus_version: CharField
+  + antivirus_last_update: DateTimeField
+  + firewall_enabled: BooleanField
+  + patch_level: CharField
+  + last_patched: DateTimeField
+  + vulnerability_score: IntegerField
+  --
+  + notes: TextField
+  + tags: CharField
+  + configuration_items: JSONField
+  + created_at: DateTimeField
+  + updated_at: DateTimeField
+}
+
+class EndUserDevice {
+  + device_type: CharField
+  + operating_system: CharField
+  + os_version: CharField
+  + os_build: CharField
+  + os_architecture: CharField
+  --
+  + processor: CharField
+  + processor_speed: CharField
+  + number_of_cores: IntegerField
+  + ram_gb: IntegerField
+  + storage_type: CharField
+  + storage_capacity_gb: IntegerField
+  + storage_used_gb: IntegerField
+  + graphics_card: CharField
+  + display_size: CharField
+  + display_resolution: CharField
+  --
+  + imei: CharField
+  + phone_number: CharField
+  + carrier: CharField
+  + sim_card_number: CharField
+  --
+  + domain_joined: BooleanField
+  + domain_name: CharField
+  + mdm_enrolled: BooleanField
+  + mdm_platform: CharField
+  + remote_wipe_enabled: BooleanField
+  --
+  + installed_software: TextField
+  + licensed_software: TextField
+  --
+  + last_login: DateTimeField
+  + last_boot_time: DateTimeField
+  + uptime_hours: IntegerField
+  --
+  + battery_health: IntegerField
+  + battery_cycle_count: IntegerField
+}
+
+class NetworkDevice {
+  + device_type: CharField
+  + firmware_version: CharField
+  + ios_version: CharField
+  --
+  + number_of_ports: IntegerField
+  + port_speed: CharField
+  + poe_enabled: BooleanField
+  + poe_budget_watts: IntegerField
+  --
+  + throughput_mbps: IntegerField
+  + max_connections: IntegerField
+  + current_connections: IntegerField
+  + cpu_utilization: IntegerField
+  + memory_utilization: IntegerField
+  --
+  + redundant_power_supply: BooleanField
+  + high_availability_enabled: BooleanField
+  --
+  + management_ip: GenericIPAddressField
+  + management_interface: CharField
+  + snmp_enabled: BooleanField
+  + snmp_community: CharField
+  + ssh_enabled: BooleanField
+  + telnet_enabled: BooleanField
+  + https_enabled: BooleanField
+  --
+  + configuration_backup: TextField
+  + last_config_backup: DateTimeField
+  + config_compliance: BooleanField
+  --
+  + connected_vlans: CharField
+  + wifi_standard: CharField
+  + ssid_list: TextField
+  + max_clients: IntegerField
+  + current_clients: IntegerField
+}
+
+class IoTDevice {
+  + device_type: CharField
+  + firmware_version: CharField
+  + protocol: CharField
+  + power_source: CharField
+  + wireless_type: CharField
+  --
+  + camera_resolution: CharField
+  + camera_type: CharField
+  + recording_enabled: BooleanField
+  + recording_location: CharField
+  --
+  + sensor_type: CharField
+  + measurement_unit: CharField
+  + current_reading: CharField
+  + last_reading_time: DateTimeField
+  + alert_threshold: CharField
+  --
+  + reader_type: CharField
+  + access_level: CharField
+  --
+  + printer_type: CharField
+  + print_server: CharField
+  + supplies_status: CharField
+  + page_count: IntegerField
+  --
+  + default_password_changed: BooleanField
+  + remote_access_enabled: BooleanField
+  + internet_accessible: BooleanField
+  + segmented_network: BooleanField
+  --
+  + last_reboot: DateTimeField
+  + uptime_days: IntegerField
+  --
+  + cloud_service: CharField
+  + api_enabled: BooleanField
+  + integration_platform: CharField
+}
+
+class Server {
+  + server_type: CharField
+  + operating_system: CharField
+  + os_version: CharField
+  + os_edition: CharField
+  + kernel_version: CharField
+  + server_role: CharField
+  --
+  + processor: CharField
+  + number_of_processors: IntegerField
+  + number_of_cores: IntegerField
+  + ram_gb: IntegerField
+  + storage_type: CharField
+  + storage_capacity_gb: IntegerField
+  + storage_used_gb: IntegerField
+  --
+  + is_virtual: BooleanField
+  + hypervisor: CharField
+  + vm_id: CharField
+  + vm_tools_version: CharField
+  --
+  + cloud_provider: CharField
+  + cloud_region: CharField
+  + cloud_availability_zone: CharField
+  + instance_type: CharField
+  + instance_id: CharField
+  + cloud_account_id: CharField
+  --
+  + cpu_utilization: IntegerField
+  + memory_utilization: IntegerField
+  + disk_utilization: IntegerField
+  + network_throughput_mbps: IntegerField
+  --
+  + installed_services: TextField
+  + listening_ports: TextField
+  + running_processes: TextField
+  --
+  + database_type: CharField
+  + database_version: CharField
+  + database_size_gb: IntegerField
+  + databases_hosted: TextField
+  --
+  + web_server_software: CharField
+  + web_server_version: CharField
+  + hosted_websites: TextField
+  + ssl_certificate_expiration: DateField
+  --
+  + backup_enabled: BooleanField
+  + backup_schedule: CharField
+  + last_backup: DateTimeField
+  + backup_location: CharField
+  + disaster_recovery_plan: BooleanField
+  + rto_hours: IntegerField
+  + rpo_hours: IntegerField
+  --
+  + clustered: BooleanField
+  + cluster_name: CharField
+  + cluster_nodes: TextField
+  + load_balanced: BooleanField
+  --
+  + management_interface: CharField
+  + management_ip: GenericIPAddressField
+  + remote_management_enabled: BooleanField
+  --
+  + licensed: BooleanField
+  + license_key: CharField
+  + license_expiration: DateField
+  + license_count: IntegerField
+  --
+  + monitoring_agent_installed: BooleanField
+  + monitoring_agent_version: CharField
+  + log_forwarding_enabled: BooleanField
+  + syslog_server: CharField
+  --
+  + last_boot_time: DateTimeField
+  + uptime_days: IntegerField
+}
+
+class AssetChangeLog {
+  + asset_type: CharField
+  + asset_id: UUID
+  + asset_name: CharField
+  + change_type: CharField
+  + changed_fields: JSONField
+  + changed_at: DateTimeField
+  + ip_address: GenericIPAddressField
+  + user_agent: CharField
+  + notes: TextField
+}
+
+class User <<Django>> {
+}
+
+' Inheritance relationships
+BaseAsset <|-- EndUserDevice
+BaseAsset <|-- NetworkDevice
+BaseAsset <|-- IoTDevice
+BaseAsset <|-- Server
+
+' User relationships
+BaseAsset "0..*" --> "0..1" User : owner
+BaseAsset "0..*" --> "0..1" User : custodian
+BaseAsset "0..*" --> "0..1" User : assigned_to
+BaseAsset "0..*" --> "0..1" User : created_by
+BaseAsset "0..*" --> "0..1" User : updated_by
+EndUserDevice "0..*" --> "0..1" User : primary_user
+AssetChangeLog "0..*" --> "0..1" User : changed_by
+
+' Self-referential relationships
+NetworkDevice "0..*" --> "0..1" NetworkDevice : failover_partner
+NetworkDevice "0..*" --> "0..1" NetworkDevice : uplink_device
+Server "0..*" --> "0..1" Server : hypervisor_host
+
+' Enumerations
+enum "Status" {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+  LOST
+  DISPOSED
+}
+
+enum "Environment" {
+  PRODUCTION
+  STAGING
+  DEVELOPMENT
+  TESTING
+  DISASTER_RECOVERY
+}
+
+enum "RiskLevel" {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+BaseAsset ..> Status
+BaseAsset ..> Environment
+BaseAsset ..> RiskLevel
+
+@enduml

@@ -21,5 +21,9 @@ from . import views
 urlpatterns = [
     path("", views.index, name="index"),
     path("overview_servers", views.overview_servers, name="overview_servers"),
-
+    path("servers/", views.server_list, name="server_list"),
+    path("servers/create/", views.server_create, name="server_create"),
+    path("servers/<uuid:pk>/", views.server_detail, name="server_detail"),
+    path("servers/<uuid:pk>/update/", views.server_update, name="server_update"),
+    path("servers/<uuid:pk>/delete/", views.server_delete, name="server_delete"),
 ]
