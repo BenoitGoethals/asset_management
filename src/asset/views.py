@@ -3,33 +3,56 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from asgiref.sync import sync_to_async
 
 from asset.models import Server
 
 
-def index(request):
-    if not request.user.is_authenticated:
+class AsyncUser:
+    """Wrapper for user data in async templates."""
+    def __init__(self, is_authenticated, username):
+        self.is_authenticated = is_authenticated
+        self.username = username
+
+
+async def get_user_context(request):
+    """Helper to get user context for templates in async views."""
+    user_data = await sync_to_async(lambda: (
+        request.user.is_authenticated,
+        getattr(request.user, 'username', '')
+    ))()
+    return {'user': AsyncUser(user_data[0], user_data[1])}
+
+
+async def index(request):
+    is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+    if not is_authenticated:
         return render(request, "asset/login.html")
-    return render(request, "asset/index.html")
+
+    context = await get_user_context(request)
+    return render(request, "asset/index.html", context)
 
 @login_required
-def overview_servers(request):
-    servers = Server.objects.all()
-    return render(request, "asset/overview_servers.html", {"servers": servers})
+async def overview_servers(request):
+    servers = [server async for server in Server.objects.all()]
+    context = await get_user_context(request)
+    context['servers'] = servers
+    return render(request, "asset/overview_servers.html", context)
 
 
 # Authentication Views
-def login_view(request):
-    if request.user.is_authenticated:
+async def login_view(request):
+    is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+    if is_authenticated:
         return redirect('server_list')
 
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = await sync_to_async(authenticate)(request, username=username, password=password)
 
         if user is not None:
-            auth_login(request, user)
+            await sync_to_async(auth_login)(request, user)
             next_url = request.GET.get('next', 'server_list')
             return redirect(next_url)
         else:
@@ -38,25 +61,31 @@ def login_view(request):
     return render(request, "asset/login.html")
 
 
-def logout_view(request):
-    auth_logout(request)
+async def logout_view(request):
+    await sync_to_async(auth_logout)(request)
     messages.success(request, "You have been logged out successfully.")
     return redirect('login')
 
 @login_required
 # CRUD Views for Server
-def server_list(request):
-    servers = Server.objects.all().order_by('-created_at')
-    return render(request, "asset/server_list.html", {"servers": servers})
+async def server_list(request):
+    servers = [server async for server in Server.objects.all().order_by('-created_at')]
+    context = await get_user_context(request)
+    context['servers'] = servers
+    return render(request, "asset/server_list.html", context)
 
 
-def server_detail(request, pk):
-    server = get_object_or_404(Server, pk=pk)
-    return render(request, "asset/server_detail.html", {"server": server})
+async def server_detail(request, pk):
+    server = await sync_to_async(get_object_or_404)(Server, pk=pk)
+    context = await get_user_context(request)
+    context['server'] = server
+    return render(request, "asset/server_detail.html", context)
 
 
 @login_required
-def server_create(request):
+async def server_create(request):
+    context = await get_user_context(request)
+
     if request.method == "POST":
         # Basic required fields
         asset_tag = request.POST.get('asset_tag')
@@ -67,10 +96,11 @@ def server_create(request):
 
         if not all([asset_tag, name, server_type, operating_system, server_role]):
             messages.error(request, "Please fill in all required fields.")
-            return render(request, "asset/server_form.html", {"server": None})
+            context['server'] = None
+            return render(request, "asset/server_form.html", context)
 
         # Create server with all available fields from POST
-        server = Server.objects.create(
+        server = await Server.objects.acreate(
             asset_tag=asset_tag,
             name=name,
             server_type=server_type,
@@ -85,12 +115,14 @@ def server_create(request):
         messages.success(request, f"Server '{server.name}' created successfully.")
         return redirect('server_detail', pk=server.pk)
 
-    return render(request, "asset/server_form.html", {"server": None})
+    context['server'] = None
+    return render(request, "asset/server_form.html", context)
 
 
 @login_required
-def server_update(request, pk):
-    server = get_object_or_404(Server, pk=pk)
+async def server_update(request, pk):
+    server = await sync_to_async(get_object_or_404)(Server, pk=pk)
+    context = await get_user_context(request)
 
     if request.method == "POST":
         # Update basic required fields
@@ -108,21 +140,24 @@ def server_update(request, pk):
         ip_address = request.POST.get('primary_ip_address')
         server.primary_ip_address = ip_address if ip_address else None
 
-        server.save()
+        await sync_to_async(server.save)()
         messages.success(request, f"Server '{server.name}' updated successfully.")
         return redirect('server_detail', pk=server.pk)
 
-    return render(request, "asset/server_form.html", {"server": server})
+    context['server'] = server
+    return render(request, "asset/server_form.html", context)
 
 
 @login_required
-def server_delete(request, pk):
-    server = get_object_or_404(Server, pk=pk)
+async def server_delete(request, pk):
+    server = await sync_to_async(get_object_or_404)(Server, pk=pk)
+    context = await get_user_context(request)
 
     if request.method == "POST":
         server_name = server.name
-        server.delete()
+        await sync_to_async(server.delete)()
         messages.success(request, f"Server '{server_name}' deleted successfully.")
         return redirect('server_list')
 
-    return render(request, "asset/server_confirm_delete.html", {"server": server})
+    context['server'] = server
+    return render(request, "asset/server_confirm_delete.html", context)
